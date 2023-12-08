@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react'
-import apiClient, { CanceledError } from './services/api-client'
+import { CanceledError } from './services/api-client'
+import userService, { User } from './services/userService'
 
-interface User {
-name : string,
-id : number
-}
 export const App = () => {
 
   const [users , setUsers] = useState<User[]>([])
@@ -15,18 +12,16 @@ export const App = () => {
     const originalUsers = [...users]
   setUsers(users.filter(u  => user.id !== u.id) )
   //Calling Server to delete it
-  apiClient.delete("/users/" + user.id)
-  .catch(err => {setErrors(err.message)
+  
+  userService.deleteUser(user.id).catch(err => {setErrors(err.message)
   setUsers(originalUsers)})
   }
   
- 
 
   useEffect(()=>{
-    const controller = new AbortController();
     setLoading(true)
-    apiClient.get<User[]>("/users" , {signal : controller.signal})
-    .then((res)=>{
+   const {request , cancel} = userService.getAllUser();
+    request.then((res)=>{
       setUsers(res.data);
       setLoading(false);
     }
@@ -35,15 +30,15 @@ export const App = () => {
       if(err instanceof CanceledError) return;
       setErrors(err.message);
     setLoading(false)} )
-    return () => controller.abort();
+    return () => cancel();
   },[])
   const addUser = () => {
 
     const newUser = { id: 0 , name:'zara'}
     setUsers([newUser , ...users]);
     const originalUsers = [...users]
-    apiClient.post("/users/" , newUser)
-    .then(({data : savedUser}) => setUsers([savedUser ,...users]))
+
+    userService.createUser(newUser).then(({data : savedUser}) => setUsers([savedUser ,...users]))
     .catch(err => {setErrors(err.message)
       setUsers(originalUsers)})
     }
@@ -53,7 +48,7 @@ export const App = () => {
      const updatedUser = {...user , name : user.name + "!"}
      setUsers(users.map(u => user.id == u.id ? updatedUser : u ))
 
-     apiClient.patch("/users/" + user.id, updatedUser)
+     userService.createUser(updatedUser)
      .catch(err => {setErrors(err.message)
       setUsers(originalUsers)})
     }
