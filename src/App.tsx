@@ -13,14 +13,14 @@ export const App = () => {
   setUsers(users.filter(u  => user.id !== u.id) )
   //Calling Server to delete it
   
-  userService.deleteUser(user.id).catch(err => {setErrors(err.message)
+  userService.delete(user.id).catch(err => {setErrors(err.message)
   setUsers(originalUsers)})
   }
   
 
   useEffect(()=>{
     setLoading(true)
-   const {request , cancel} = userService.getAllUser();
+   const {request , cancel} = userService.getAll<User[]>();
     request.then((res)=>{
       setUsers(res.data);
       setLoading(false);
@@ -38,7 +38,7 @@ export const App = () => {
     setUsers([newUser , ...users]);
     const originalUsers = [...users]
 
-    userService.createUser(newUser).then(({data : savedUser}) => setUsers([savedUser ,...users]))
+    userService.create(newUser).then(({data : savedUser}) => setUsers([savedUser ,...users]))
     .catch(err => {setErrors(err.message)
       setUsers(originalUsers)})
     }
@@ -48,7 +48,7 @@ export const App = () => {
      const updatedUser = {...user , name : user.name + "!"}
      setUsers(users.map(u => user.id == u.id ? updatedUser : u ))
 
-     userService.createUser(updatedUser)
+     userService.create(updatedUser)
      .catch(err => {setErrors(err.message)
       setUsers(originalUsers)})
     }
